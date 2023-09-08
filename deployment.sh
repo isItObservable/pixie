@@ -62,6 +62,17 @@ fi
 
 helm upgrade --install ingress-nginx ingress-nginx  --repo https://kubernetes.github.io/ingress-nginx  --namespace ingress-nginx --create-namespace
 
+#### Deploy the cert-manager
+echo "Deploying Cert Manager ( for OpenTelemetry Operator)"
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.10.0/cert-manager.yaml
+# Wait for pod webhook started
+kubectl wait pod -l app.kubernetes.io/component=webhook -n cert-manager --for=condition=Ready --timeout=2m
+# Deploy the opentelemetry operator
+sleep 10
+echo "Deploying the OpenTelemetry Operator"
+kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/latest/download/opentelemetry-operator.yaml
+
+
 ### get the ip adress of ingress ####
 IP=""
 while [ -z $IP ]; do
@@ -75,15 +86,6 @@ echo 'Found external IP: '$IP
 #TODO to update this part to use the dns entry /ELB/ALB
 sed -i "s,IP_TO_REPLACE,$IP," openTelemetry-demo/deployment.yaml
 
-#### Deploy the cert-manager
-echo "Deploying Cert Manager ( for OpenTelemetry Operator)"
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.10.0/cert-manager.yaml
-# Wait for pod webhook started
-kubectl wait pod -l app.kubernetes.io/component=webhook -n cert-manager --for=condition=Ready --timeout=2m
-# Deploy the opentelemetry operator
-sleep 10
-echo "Deploying the OpenTelemetry Operator"
-kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/latest/download/opentelemetry-operator.yaml
 
 # Deploy collector
 kubectl create secret generic dynatrace  --from-literal=dynatrace_oltp_url="$DTURL" --from-literal=dt_api_token="$DTTOKEN"
