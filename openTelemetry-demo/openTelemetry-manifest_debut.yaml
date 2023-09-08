@@ -91,7 +91,7 @@ spec:
     service:
       pipelines:
         traces:
-          receivers: [opencensus,otlp]
+          receivers: [otlp]
           processors: [memory_limiter,k8sattributes,batch]
           exporters: [otlphttp]
         metrics:
