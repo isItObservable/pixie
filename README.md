@@ -80,9 +80,16 @@ bash -c "$(curl -fsSL https://withpixie.ai/install.sh)"
 ```
 
 ### 6. Deploy the otelDemo application 
-d ..
+```shell
+cd ..
 chmod 777 deployment.sh
 ./deployment.sh  --dturl "${DT_TENANT_URL}" --dtingesttoken "${DATA_INGEST_TOKEN}"
+```
+
+### 7. Connect the cli to your Pixie Cloud
+```shell
+px auth login
+```
 
 
 ### 7. Install Vizier
@@ -90,4 +97,17 @@ chmod 777 deployment.sh
 px deploy
 ```
 
-### 7. Customize the OpenTelemetry Plugin
+### 6. Customize the OpenTelemetry Plugin
+Let's configure the OpenTelemetry plugin
+In pixie click on Data retention logo on the left menu
+<p align="center"><img src="/image/data_retention.png" width="40%" alt="data token" /></p>
+
+Add the Plugin OpenTelemetry, and configure it to send the telemetry data to our OpenTelemtry collector : `oteld-collector.default.svc.cluster.local:4317`
+<p align="center"><img src="/image/pixie_plugin.png" width="40%" alt="data token" /></p>
+
+Customize the OpenTelemtry plugin by adding all the scripts located in the `/pixie plugin` folder
+Click on add script to add one the available scripts :
+<p align="center"><img src="/image/create_script.png" width="40%" alt="data token" /></p>
+
+Once you have added all the scripts you should have the following results :
+<p align="center"><img src="/image/custom_scripts.png" width="40%" alt="data token" /></p>
