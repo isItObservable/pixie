@@ -105,7 +105,7 @@ In pixie click on Data retention logo on the left menu
 Add the Plugin OpenTelemetry, and configure it to send the telemetry data to our OpenTelemtry collector : `oteld-collector.default.svc.cluster.local:4317`
 <p align="center"><img src="/image/pixie_plugin.png" width="40%" alt="data token" /></p>
 
-Customize the OpenTelemtry plugin by adding all the scripts located in the `/pixie plugin` folder
+Customize the OpenTelemetry plugin by adding all the scripts located in the `/pixie plugin` folder
 Click on add script to add one the available scripts :
 <p align="center"><img src="/image/create_script.png" width="40%" alt="data token" /></p>
 
