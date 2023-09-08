@@ -1,0 +1,104 @@
+import px
+
+df = px.DataFrame('jvm_stats', start_time=px.plugin.start_time, end_time=px.plugin.end_time)
+
+ns_prefix = df.ctx['namespace'] + '/'
+df.container = df.ctx['container_name']
+df.pod = px.strip_prefix(ns_prefix, df.ctx['pod'])
+df.service = px.strip_prefix(ns_prefix, df.ctx['service'])
+df.namespace = df.ctx['namespace']
+
+df.used_heap_size = px.Bytes(df.used_heap_size)
+df.total_heap_size = px.Bytes(df.total_heap_size)
+df.max_heap_size = px.Bytes(df.max_heap_size)
+
+# Aggregate over each process, k8s_object.
+df = df.groupby(['upid','container', 'pod', 'service', 'namespace']).agg(
+  young_gc_time_max=('young_gc_time', px.max),
+  young_gc_time_min=('young_gc_time', px.min),
+  full_gc_time_max=('full_gc_time', px.max),
+  full_gc_time_min=('full_gc_time', px.min),
+  used_heap_size=('used_heap_size', px.mean),
+  total_heap_size=('total_heap_size', px.mean),
+  max_heap_size=('max_heap_size', px.mean),
+  time_=('time_', px.max),
+)
+
+# Convert the counter metrics into accumulated values over the window.
+df.young_gc_time = df.young_gc_time_max - df.young_gc_time_min
+df.full_gc_time = df.full_gc_time_max - df.full_gc_time_min
+
+# Aggregate over each k8s_object.
+df = df.groupby(['container', 'pod', 'service', 'namespace']).agg(
+  young_gc_time=('young_gc_time', px.sum),
+  full_gc_time=('full_gc_time', px.sum),
+  used_heap_size=('used_heap_size', px.sum),
+  max_heap_size=('max_heap_size', px.sum),
+  total_heap_size=('total_heap_size', px.sum),
+  time_=('time_', px.max),
+)
+df.young_gc_time = px.DurationNanos(df.young_gc_time) / 1000000.0
+df.full_gc_time = px.DurationNanos(df.full_gc_time) / 1000000.0
+
+df.cluster_name = px.vizier_name()
+df.cluster_id = px.vizier_id()
+df.pixie = 'pixie'
+
+df.young = 'young'
+df.full = 'full'
+df.used = 'used'
+df.total = 'total'
+df.heap = 'area'
+df.max = 'max'
+
+px.export(
+df, px.otel.Data(
+  resource={
+    'service.name': df.service,
+    'k8s.container.name': df.container,
+    'service.instance.id': df.pod,
+    'k8s.pod.name': df.pod,
+    'k8s.namespace.name': df.namespace,
+    'px.cluster.id': df.cluster_id,
+    'k8s.cluster.name': df.cluster_name,
+    'instrumentation.provider': df.pixie,
+  },
+  data=[
+    px.otel.metric.Gauge(
+      name='runtime.jvm.gc.collection',
+      description='',
+      unit='ms',
+      value=df.young_gc_time,
+      attributes={'gc': df.young},
+    ),
+    px.otel.metric.Gauge(
+      name='runtime.jvm.gc.collection',
+      description=''
+      unit='ms',
+      value=df.full_gc_time,
+      attributes={'gc': df.full},
+    ),
+    px.otel.metric.Gauge(
+      name='runtime.memory.area',
+      description=''
+      unit='bytes',
+      value=df.used_heap_size,
+      attributes={'type': df.used, 'area': df.heap},
+    ),
+    px.otel.metric.Gauge(
+      name='runtime.memory.area',
+      description=''
+      unit='bytes',
+      value=df.total_heap_size,
+      attributes={'type': df.total, 'area': df.heap},
+    ),
+    px.otel.metric.Gauge(
+      name='runtime.memory.area',
+      description=''
+      unit='bytes',
+      value=df.max_heap_size,
+      attributes={'type': df.max, 'area': df.heap},
+    ),
+  ],
+),
+)
