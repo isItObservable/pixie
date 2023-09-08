@@ -33,11 +33,11 @@ fi
 echo "parsing arguments"
 while [ $# -gt 0 ]; do
   case "$1" in
-  --dttoken)
+  --dtingesttoken)
     DTTOKEN="$2"
    shift 2
     ;;
-  --dthost)
+  --dturl)
     DTURL="$2"
    shift 2
     ;;

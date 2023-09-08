@@ -70,8 +70,6 @@ https://github.com/isItObservable/pixie
 cd pixie
 ```
 
-
-
 ### 4. Create a Pixie Community Cloud account
 Visit our [pixie's page](https://work.withpixie.ai/) and sign up.
 
@@ -80,7 +78,14 @@ Visit our [pixie's page](https://work.withpixie.ai/) and sign up.
 # Copy and run command to install the Pixie CLI.
 bash -c "$(curl -fsSL https://withpixie.ai/install.sh)"
 ```
-### 6. Install Vizier
+
+### 6. Deploy the otelDemo application 
+d ..
+chmod 777 deployment.sh
+./deployment.sh  --dturl "${DT_TENANT_URL}" --dtingesttoken "${DATA_INGEST_TOKEN}"
+
+
+### 7. Install Vizier
 ```shell
 px deploy
 ```
